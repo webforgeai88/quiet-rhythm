@@ -64,7 +64,27 @@ if(action.startsWith('delete-')){if(!confirm('Удалить запись без
 const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
 function bindVoiceUI(){const btn=$('#voice-button');if(!Speech){btn.disabled=true;$('#voice-status').textContent='Этот браузер не поддерживает голосовой ввод. Введи текст вручную или попробуй Chrome.';return}btn.onclick=startVoice;$('#voice-status').textContent='Нажми микрофон и расскажи свою идею.'}
 function stopVoice(){if(recognition){const r=recognition;r.flush?.();recognition=null;isListening=false;r.stop()}if($('#voice-button')){$('#voice-button').classList.remove('listening');$('#voice-button').textContent='♩ Надиктовать идею'}}
-function startVoice(){if(isListening){stopVoice();return}if(!Speech)return;const r=new Speech();recognition=r;r.lang='ru-RU';r.continuous=true;r.interimResults=true;let base=draft.trimEnd(),finalText='',lastInterim='',finished=false;const update=()=>{draft=[base,finalText].filter(Boolean).join(' ');if($('#idea-draft'))$('#idea-draft').value=draft};r.flush=()=>{if(finished)return;if(lastInterim){finalText=[finalText,lastInterim].filter(Boolean).join(' ');lastInterim='';}update();finished=true;};r.onstart=()=>{if(recognition!==r)return;isListening=true;$('#voice-button').classList.add('listening');$('#voice-button').textContent='■ Остановить';$('#voice-status').textContent='Слушаю… Говори в своём темпе.'};r.onresult=e=>{if(finished||tab!=='ideas')return;let finalParts=[],interimParts=[];for(let i=0;i<e.results.length;i++){(e.results[i].isFinal?finalParts:interimParts).push(e.results[i][0].transcript)}finalText=finalParts.join(' ').trim();lastInterim=interimParts.join(' ').trim();update();$('#voice-interim').textContent=lastInterim;};r.onerror=e=>{if(tab!=='ideas')return;const messages={'not-allowed':'Доступ к микрофону запрещён. Разреши его в настройках сайта и попробуй снова.','service-not-allowed':'Сервис распознавания недоступен в этом браузере. Можно ввести текст вручную.','audio-capture':'Микрофон не найден. Проверь подключение и доступ к нему.','no-speech':'Речь не распознана. Нажми микрофон и попробуй ещё раз.','network':'Нет связи с сервисом распознавания. Проверь интернет или введи текст вручную.','language-not-supported':'Русский язык недоступен в сервисе этого браузера.'};$('#voice-status').textContent=messages[e.error]||'Не удалось распознать речь. Попробуй снова или введи текст вручную.';r.hadError=true};r.onend=()=>{r.flush();if(recognition===r)recognition=null;isListening=false;if(tab==='ideas'&&$('#voice-button')){$('#voice-button').classList.remove('listening');$('#voice-button').textContent='♩ Надиктовать идею';$('#voice-interim').textContent='';if(!r.hadError)$('#voice-status').textContent='Диктовка завершена. Проверь текст и сохрани идею.'}};try{r.start()}catch(e){recognition=null;$('#voice-status').textContent='Не удалось начать диктовку. Попробуй ещё раз.'}}
+function startVoice(){
+  if(isListening){stopVoice();return}
+  if(!Speech)return;
+  const r=new Speech();recognition=r;
+  // One utterance per session: mobile engines may return cumulative revisions.
+  r.lang='ru-RU';r.continuous=false;r.interimResults=true;
+  const base=draft.trimEnd();let phrase='',finished=false;
+  const update=()=>{draft=[base,phrase].filter(Boolean).join(' ');if($('#idea-draft'))$('#idea-draft').value=draft};
+  r.flush=()=>{if(finished)return;update();finished=true};
+  r.onstart=()=>{if(recognition!==r)return;isListening=true;$('#voice-button').classList.add('listening');$('#voice-button').textContent='■ Остановить';$('#voice-status').textContent='Слушаю одну фразу… После паузы диктовка завершится.'};
+  r.onresult=e=>{
+    if(finished||recognition!==r||tab!=='ideas')return;
+    // Replace the hypothesis, never concatenate earlier versions of this utterance.
+    const latest=e.results[e.results.length-1];
+    if(!latest||!latest[0])return;
+    phrase=latest[0].transcript.trim();update();$('#voice-interim').textContent='';
+  };
+  r.onerror=e=>{if(finished||recognition!==r||tab!=='ideas')return;const messages={'not-allowed':'Доступ к микрофону запрещён. Разреши его в настройках сайта и попробуй снова.','service-not-allowed':'Сервис распознавания недоступен в этом браузере. Можно ввести текст вручную.','audio-capture':'Микрофон не найден. Проверь подключение и доступ к нему.','no-speech':'Речь не распознана. Нажми микрофон и попробуй ещё раз.','network':'Нет связи с сервисом распознавания. Проверь интернет или введи текст вручную.','language-not-supported':'Русский язык недоступен в сервисе этого браузера.'};$('#voice-status').textContent=messages[e.error]||'Не удалось распознать речь. Попробуй снова или введи текст вручную.';r.hadError=true};
+  r.onend=()=>{r.flush();if(recognition&&recognition!==r)return;if(recognition===r)recognition=null;isListening=false;if(tab==='ideas'&&$('#voice-button')){$('#voice-button').classList.remove('listening');$('#voice-button').textContent='♩ Надиктовать идею';$('#voice-interim').textContent='';if(!r.hadError)$('#voice-status').textContent='Диктовка завершена. Проверь текст и сохрани идею.'}};
+  try{r.start()}catch(e){recognition=null;isListening=false;$('#voice-status').textContent='Не удалось начать диктовку. Попробуй ещё раз.'}
+}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopVoice();else if(tab==='daily'&&selected!==today()&&selected===lastToday){selected=today();month=parseDate(selected);render();lastToday=today()}});
 let lastToday=today();setInterval(()=>{if(today()!==lastToday){if(selected===lastToday)selected=today();lastToday=today();render()}},30000);
 applyTheme();render();if(storageFailed)notify('Сохранённые данные недоступны. Показаны примеры; проверь настройки хранилища браузера.');else persist();
