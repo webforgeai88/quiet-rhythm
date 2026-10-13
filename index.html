@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Тихий ритм — привычки, важные дела и идеи в одном личном планере.">
+  <meta name="theme-color" content="#152e32"><title>Тихий ритм — личный планер</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css"><link rel="stylesheet" href="./modern.css"><link rel="stylesheet" href="./garden.css"><link rel="stylesheet" href="./cozy.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#daily"><span class="brand-mark">р</span><span>тихий ритм<small>Место для твоего дня</small></span></a>
+    <nav aria-label="Разделы"><button data-tab="daily" class="nav-button"><span>☀</span>Ежедневно</button><button data-tab="tasks" class="nav-button"><span>⚑</span>Важно</button><button data-tab="ideas" class="nav-button"><span>✧</span>Мои идеи</button></nav>
+    <div class="sidebar-bottom"><p>Не всё сразу.<br>По одному маленькому шагу.</p><button id="theme-button" class="text-button">◐ Тёмная тема</button><button id="settings-button" class="text-button">⚙ Настройки и демо</button><small>Учебный проект · личный планер</small></div>
+  </aside>
+  <main>
+    <header class="topbar"><span id="today-label"></span><span class="local-label">Сохраняется в этом браузере</span></header>
+    <section class="page-heading"><div class="hero-copy"><p class="eyebrow" id="page-kicker"></p><h1 id="page-title"></h1><p id="page-description"></p><button id="add-button" class="primary"></button></div><div id="hero-art" class="hero-art" aria-hidden="true"></div></section>
+    <div id="page-content"></div>
+    <footer>Твой темп — хороший темп. <span>Тихий ритм</span></footer>
+  </main>
+  <dialog id="editor"><form id="editor-form"><div class="dialog-heading"><h2 id="editor-title"></h2><button type="button" class="icon-button" id="close-editor" aria-label="Закрыть">×</button></div><div id="editor-fields"></div><div class="dialog-actions"><button type="button" id="cancel-editor" class="secondary">Отмена</button><button type="submit" class="primary">Сохранить</button></div></form></dialog>
+  <dialog id="settings"><div class="dialog-heading"><h2>Настройки</h2><button class="icon-button" id="close-settings" aria-label="Закрыть">×</button></div><p>Данные сохраняются только в этом браузере. Они не синхронизируются между устройствами и могут исчезнуть при очистке данных сайта.</p><div class="settings-note"><strong>Начать знакомство заново</strong><p>Восстановить примеры привычек, задач и идей. Текущие записи будут удалены.</p><button class="secondary" id="reset-button">Сбросить демо</button></div><p class="small">Голосовой ввод зависит от браузера и доступности его сервиса распознавания. Аудиозаписи не сохраняются.</p></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
